@@ -1005,7 +1005,17 @@ async function saveRound() {
   if (ge) return showStatus('Error saving groups: ' + ge.message, 'error');
 
   historyData = null;
-  showStatus('Round saved — these groups are locked in for today.', 'success');
+
+  // Visual feedback on the button itself
+  const saveBtn = document.querySelector('.result-actions .btn-primary');
+  saveBtn.textContent = '✅ Saved!';
+  saveBtn.style.background = 'var(--sage)';
+  saveBtn.disabled = true;
+  setTimeout(() => {
+    saveBtn.textContent = 'Use This One';
+    saveBtn.style.background = '';
+    saveBtn.disabled = false;
+  }, 3000);
 }
 
 function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
