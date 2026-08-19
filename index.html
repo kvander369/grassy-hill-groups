@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grassy Hill Groups</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --green-dark: #1a5632;
+    --green-mid: #2e7d4a;
+    --green-light: #e8f5e9;
+    --green-accent: #43a047;
+    --white: #ffffff;
+    --gray-50: #fafafa;
+    --gray-100: #f5f5f5;
+    --gray-200: #eeeeee;
+    --gray-400: #bdbdbd;
+    --gray-600: #757575;
+    --gray-800: #424242;
+    --red: #c62828;
+    --gold: #f9a825;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--green-dark);
+    color: var(--white);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .settings-btn {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .settings-btn:hover { background: rgba(255,255,255,0.15); }
+
+  .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--green-dark);
+    margin-bottom: 14px;
+  }
+
+  /* Roster */
+  .roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 6px;
+  }
+
+  .player-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+  }
+
+  .player-row:hover { background: var(--gray-100); }
+  .player-row.checked { background: var(--green-light); }
+
+  .player-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: var(--green-accent);
+    cursor: pointer;
+  }
+
+  .player-name {
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .player-hcp {
+    font-size: 13px;
+    color: var(--gray-600);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  .checked-count {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .checked-count strong { color: var(--green-dark); font-size: 18px; }
+
+  /* Add player */
+  .add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .add-row input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--gray-400);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .add-row input:focus { outline: none; border-color: var(--green-accent); }
+
+  .add-row .hcp-input { width: 60px; flex: none; }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--green-dark);
+    color: var(--white);
+  }
+
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-primary:disabled { background: var(--gray-400); cursor: not-allowed; }
+
+  .btn-secondary {
+    background: var(--white);
+    color: var(--green-dark);
+    border: 2px solid var(--green-dark);
+  }
+
+  .btn-secondary:hover { background: var(--green-light); }
+
+  .btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .btn-add {
+    background: var(--green-accent);
+    color: var(--white);
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Group size selector */
+  .size-options {
+    display: flex;
+    gap: 10px;
+  }
+
+  .size-option {
+    flex: 1;
+    padding: 14px;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--white);
+  }
+
+  .size-option:hover { border-color: var(--green-accent); }
+  .size-option.selected {
+    border-color: var(--green-dark);
+    background: var(--green-light);
+  }
+
+  .size-option .num { font-size: 28px; font-weight: 700; color: var(--green-dark); }
+  .size-option .label { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+
+  /* Split options */
+  .split-options { display: flex; flex-direction: column; gap: 8px; }
+
+  .split-option {
+    padding: 12px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.15s;
+    background: var(--white);
+  }
+
+  .split-option:hover { border-color: var(--green-accent); }
+  .split-option.selected {
+    border-color: var(--green-dark);
+    background: var(--green-light);
+  }
+
+  /* Generate button */
+  .generate-section {
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .btn-generate {
+    width: 100%;
+    padding: 16px;
+    font-size: 17px;
+  }
+
+  /* Results */
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .option-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--green-dark);
+  }
+
+  .option-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--white);
+    color: var(--green-dark);
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .option-tab.active {
+    background: var(--green-dark);
+    color: var(--white);
+  }
+
+  .option-content { display: none; }
+  .option-content.active { display: block; }
+
+  .group-card {
+    background: var(--gray-50);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--green-accent);
+  }
+
+  .group-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--green-dark);
+    margin-bottom: 6px;
+  }
+
+  .group-players {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .group-players .player-entry { display: flex; justify-content: space-between; }
+  .group-players .hcp { color: var(--gray-600); font-size: 13px; }
+
+  .result-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .result-actions .btn { flex: 1; }
+
+  /* Score badge */
+  .score-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-weight: 600;
+  }
+
+  /* Settings modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .modal h2 { font-size: 18px; margin-bottom: 16px; color: var(--green-dark); }
+
+  .modal label {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .modal input[type="number"] {
+    width: 80px;
+    padding: 8px 12px;
+    border: 1px solid var(--gray-400);
+    border-radius: 6px;
+    font-size: 16px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* Status messages */
+  .status {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .status.success { display: block; background: var(--green-light); color: var(--green-dark); }
+  .status.error { display: block; background: #ffebee; color: var(--red); }
+
+  .hidden { display: none !important; }
+
+  /* Select all / deselect */
+  .roster-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--green-accent);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  @media (max-width: 500px) {
+    .roster-grid { grid-template-columns: 1fr; }
+    .size-options { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⛳ Grassy Hill Groups</h1>
+  <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+</header>
+
+<div class="container">
+
+  <!-- Status -->
+  <div id="status" class="status"></div>
+
+  <!-- Step 1: Roster -->
+  <div class="card">
+    <div class="card-title">Who's Playing Today?</div>
+    <div class="roster-actions">
+      <button class="link-btn" onclick="selectAll()">Select All</button>
+      <button class="link-btn" onclick="deselectAll()">Deselect All</button>
+    </div>
+    <div id="roster" class="roster-grid"></div>
+    <div id="checkedCount" class="checked-count"></div>
+    <div class="add-row">
+      <input type="text" id="newName" placeholder="New player name">
+      <input type="number" id="newHcp" class="hcp-input" placeholder="Hcp">
+      <button class="btn-add" onclick="addPlayer()">Add</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Group Size -->
+  <div class="card">
+    <div class="card-title">Group Size</div>
+    <div class="size-options">
+      <div class="size-option" onclick="selectSize(2)" data-size="2">
+        <div class="num">2</div>
+        <div class="label">Twosomes</div>
+      </div>
+      <div class="size-option" onclick="selectSize(3)" data-size="3">
+        <div class="num">3</div>
+        <div class="label">Threesomes</div>
+      </div>
+      <div class="size-option" onclick="selectSize(4)" data-size="4">
+        <div class="num">4</div>
+        <div class="label">Foursomes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Split options (shown if remainder) -->
+  <div id="splitCard" class="card hidden">
+    <div class="card-title">How to Split?</div>
+    <div id="splitOptions" class="split-options"></div>
+  </div>
+
+  <!-- Generate button -->
+  <div class="generate-section">
+    <button id="generateBtn" class="btn btn-primary btn-generate" onclick="generateGroups()" disabled>
+      Generate Groups
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsCard" class="card hidden">
+    <div class="results-header">
+      <div class="card-title" style="margin-bottom:0">Your Groups</div>
+    </div>
+    <div class="option-tabs">
+      <button class="option-tab active" onclick="showOption(0)">Option A</button>
+      <button class="option-tab" onclick="showOption(1)">Option B</button>
+    </div>
+    <div id="optionA" class="option-content active"></div>
+    <div id="optionB" class="option-content"></div>
+    <div class="result-actions">
+      <button class="btn btn-secondary" onclick="generateGroups()">🔄 Generate More</button>
+      <button class="btn btn-primary" onclick="saveRound()">✅ Use This</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal">
+    <h2>⚙️ Settings</h2>
+    <label for="lookbackInput">Lookback Window (weeks)</label>
+    <input type="number" id="lookbackInput" min="1" max="52" value="6">
+    <p style="font-size:13px;color:#757575;margin-top:6px;">
+      The algorithm looks at this many weeks of history to mix up groups and positions.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== CONFIG ==========
+const SUPABASE_URL = 'https://lackcooiarpahgmkrpeu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_tJiFVeYxpyuARtzVn41u-Q_1zkILqdF';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ========== STATE ==========
+let players = [];
+let checkedIds = new Set();
+let selectedSize = null;
+let selectedSplit = null;
+let lookbackWeeks = 6;
+let historyData = null;  // cached
+let currentOptions = [null, null];
+let activeOption = 0;
+
+// ========== INIT ==========
+async function init() {
+  await loadSettings();
+  await loadPlayers();
+  updateCheckedCount();
+}
+
+// ========== DATA LOADING ==========
+async function loadPlayers() {
+  const { data, error } = await sb.from('players').select('*').order('name');
+  if (error) return showStatus('Error loading roster: ' + error.message, 'error');
+  players = data;
+  renderRoster();
+}
+
+async function loadSettings() {
+  const { data } = await sb.from('settings').select('*').eq('key', 'lookback_weeks').single();
+  if (data) {
+    lookbackWeeks = parseInt(data.value);
+    document.getElementById('lookbackInput').value = lookbackWeeks;
+  }
+}
+
+async function loadHistory() {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - lookbackWeeks * 7);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+
+  const { data: rounds } = await sb
+    .from('rounds')
+    .select('id, played_date, group_size')
+    .gte('played_date', cutoffStr)
+    .order('played_date', { ascending: false });
+
+  if (!rounds || rounds.length === 0) return { pairCounts: {}, positionCounts: {} };
+
+  const roundIds = rounds.map(r => r.id);
+  const { data: groups } = await sb
+    .from('round_groups')
+    .select('round_id, group_number, player_id')
+    .in('round_id', roundIds);
+
+  // Build pair counts and position counts
+  const pairCounts = {};
+  const positionCounts = {};
+
+  // Group by round
+  const byRound = {};
+  for (const g of groups) {
+    if (!byRound[g.round_id]) byRound[g.round_id] = {};
+    if (!byRound[g.round_id][g.group_number]) byRound[g.round_id][g.group_number] = [];
+    byRound[g.round_id][g.group_number].push(g.player_id);
+  }
+
+  const totalGroups = {};
+
+  for (const roundId in byRound) {
+    const round = byRound[roundId];
+    const groupNums = Object.keys(round).map(Number).sort((a,b) => a - b);
+    const totalGroupsInRound = groupNums.length;
+
+    for (const gNum of groupNums) {
+      const members = round[gNum];
+
+      // Normalize position: convert group_number to a fraction of total groups
+      const normalizedPos = totalGroupsInRound > 1
+        ? Math.round((gNum - 1) / (totalGroupsInRound - 1) * 2)  // 0=early, 1=mid, 2=late
+        : 1;
+
+      // Count pairs
+      for (let i = 0; i < members.length; i++) {
+        // Position tracking
+        const pid = members[i];
+        const posKey = pid + ':' + normalizedPos;
+        positionCounts[posKey] = (positionCounts[posKey] || 0) + 1;
+
+        for (let j = i + 1; j < members.length; j++) {
+          const key = [members[i], members[j]].sort().join('|');
+          pairCounts[key] = (pairCounts[key] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  return { pairCounts, positionCounts };
+}
+
+// ========== ROSTER RENDERING ==========
+function renderRoster() {
+  const el = document.getElementById('roster');
+  el.innerHTML = players.map(p => `
+    <label class="player-row ${checkedIds.has(p.id) ? 'checked' : ''}" data-id="${p.id}">
+      <input type="checkbox" ${checkedIds.has(p.id) ? 'checked' : ''}
+             onchange="togglePlayer('${p.id}')">
+      <span class="player-name">${p.name}</span>
+      <span class="player-hcp">${p.handicap != null ? p.handicap : '—'}</span>
+    </label>
+  `).join('');
+}
+
+function togglePlayer(id) {
+  if (checkedIds.has(id)) checkedIds.delete(id);
+  else checkedIds.add(id);
+  renderRoster();
+  updateCheckedCount();
+  updateSplitOptions();
+}
+
+function selectAll() {
+  players.forEach(p => checkedIds.add(p.id));
+  renderRoster();
+  updateCheckedCount();
+  updateSplitOptions();
+}
+
+function deselectAll() {
+  checkedIds.clear();
+  renderRoster();
+  updateCheckedCount();
+  updateSplitOptions();
+}
+
+function updateCheckedCount() {
+  const n = checkedIds.size;
+  document.getElementById('checkedCount').innerHTML =
+    n === 0 ? 'No players selected' :
+    `<strong>${n}</strong> player${n !== 1 ? 's' : ''} selected`;
+  updateGenerateButton();
+}
+
+// ========== ADD PLAYER ==========
+async function addPlayer() {
+  const nameEl = document.getElementById('newName');
+  const hcpEl = document.getElementById('newHcp');
+  const name = nameEl.value.trim();
+  const hcp = hcpEl.value ? parseFloat(hcpEl.value) : null;
+
+  if (!name) return;
+
+  const { data, error } = await sb.from('players').insert({ name, handicap: hcp }).select().single();
+  if (error) {
+    if (error.message.includes('unique')) return showStatus(name + ' is already on the roster.', 'error');
+    return showStatus('Error: ' + error.message, 'error');
+  }
+
+  players.push(data);
+  players.sort((a, b) => a.name.localeCompare(b.name));
+  checkedIds.add(data.id);
+  renderRoster();
+  updateCheckedCount();
+  nameEl.value = '';
+  hcpEl.value = '';
+  showStatus(name + ' added to roster!', 'success');
+}
+
+// ========== GROUP SIZE ==========
+function selectSize(size) {
+  selectedSize = size;
+  document.querySelectorAll('.size-option').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.size) === size);
+  });
+  updateSplitOptions();
+  updateGenerateButton();
+}
+
+// ========== SPLIT OPTIONS ==========
+function updateSplitOptions() {
+  const n = checkedIds.size;
+  const splitCard = document.getElementById('splitCard');
+  const splitEl = document.getElementById('splitOptions');
+
+  if (!selectedSize || n === 0) {
+    splitCard.classList.add('hidden');
+    selectedSplit = null;
+    return;
+  }
+
+  const remainder = n % selectedSize;
+  if (remainder === 0) {
+    // Perfect split
+    const numGroups = n / selectedSize;
+    selectedSplit = Array(numGroups).fill(selectedSize);
+    splitCard.classList.add('hidden');
+    updateGenerateButton();
+    return;
+  }
+
+  // Generate split options
+  const splits = generateSplits(n, selectedSize);
+  if (splits.length <= 1) {
+    selectedSplit = splits[0];
+    splitCard.classList.add('hidden');
+    updateGenerateButton();
+    return;
+  }
+
+  splitCard.classList.remove('hidden');
+  splitEl.innerHTML = splits.map((split, i) => {
+    const desc = split.join(' – ');
+    const label = describeSplit(split);
+    return `<div class="split-option ${selectedSplit && splitMatch(selectedSplit, split) ? 'selected' : ''}"
+                 onclick="chooseSplit(${i})" data-index="${i}">
+              <strong>${desc}</strong> <span style="color:#757575;font-size:13px;margin-left:8px">${label}</span>
+            </div>`;
+  }).join('');
+
+  window._splits = splits;
+}
+
+function generateSplits(n, size) {
+  const results = [];
+
+  // Option 1: Fill max groups, short group at end
+  const fullGroups = Math.floor(n / size);
+  const leftover = n % size;
+  if (leftover > 0 && leftover >= 2) {
+    const split = Array(fullGroups).fill(size);
+    split.push(leftover);
+    results.push(split);
+  } else if (leftover === 0) {
+    results.push(Array(fullGroups).fill(size));
+    return results;
+  }
+
+  // Option 2: Redistribute to even out
+  // Take one from full groups to fill the remainder
+  if (leftover > 0 && fullGroups > 0) {
+    // How many groups need to shrink by 1 to fill up
+    const smallerSize = size - 1;
+    if (smallerSize >= 2) {
+      const needToMove = size - leftover;
+      if (needToMove <= fullGroups) {
+        const bigGroups = fullGroups - needToMove;
+        const smallGroups = needToMove + 1;
+        const split = [];
+        for (let i = 0; i < bigGroups; i++) split.push(size);
+        for (let i = 0; i < smallGroups; i++) split.push(smallerSize);
+        // Verify sum
+        if (split.reduce((a, b) => a + b, 0) === n) {
+          results.push(split);
+        }
+      }
+    }
+  }
+
+  // Handle edge case: leftover of 1 (can't have a single)
+  if (leftover === 1 && fullGroups > 0) {
+    results.length = 0; // clear invalid option 1
+    const smallerSize = size - 1;
+    if (smallerSize >= 2) {
+      // Make two groups of size-1 instead of one full + one single
+      const split = Array(fullGroups - 1).fill(size);
+      split.push(smallerSize);
+      split.push(smallerSize);
+      if (split.reduce((a, b) => a + b, 0) === n && split.every(s => s >= 2)) {
+        results.push(split);
+      }
+    }
+    // Also try: all groups of size-1 plus distribute
+    const altGroups = Math.ceil(n / size);
+    const altSplit = [];
+    let remaining = n;
+    for (let i = 0; i < altGroups; i++) {
+      const s = Math.min(size, remaining);
+      altSplit.push(s);
+      remaining -= s;
+    }
+    if (remaining === 0 && altSplit.every(s => s >= 2)) {
+      const key = altSplit.sort((a,b) => b-a).join(',');
+      const existing = results.map(r => r.sort((a,b) => b-a).join(','));
+      if (!existing.includes(key)) results.push(altSplit);
+    }
+  }
+
+  // Sort each split descending for display
+  results.forEach(s => s.sort((a, b) => b - a));
+
+  // Deduplicate
+  const seen = new Set();
+  const unique = [];
+  for (const s of results) {
+    const key = s.join(',');
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(s);
+    }
+  }
+
+  return unique;
+}
+
+function describeSplit(split) {
+  const counts = {};
+  for (const s of split) counts[s] = (counts[s] || 0) + 1;
+  return Object.entries(counts)
+    .sort((a, b) => b[0] - a[0])
+    .map(([size, count]) => `${count} ${['', '', 'twosome', 'threesome', 'foursome'][size]}${count > 1 ? 's' : ''}`)
+    .join(', ');
+}
+
+function chooseSplit(index) {
+  selectedSplit = window._splits[index];
+  document.querySelectorAll('.split-option').forEach((el, i) => {
+    el.classList.toggle('selected', i === index);
+  });
+  updateGenerateButton();
+}
+
+function splitMatch(a, b) {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+// ========== GENERATE BUTTON STATE ==========
+function updateGenerateButton() {
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = !(checkedIds.size >= 2 && selectedSize && selectedSplit);
+}
+
+// ========== GROUPING ALGORITHM ==========
+async function generateGroups() {
+  const btn = document.getElementById('generateBtn');
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+
+  showStatus('', '');
+
+  try {
+    // Load history if not cached
+    historyData = await loadHistory();
+
+    const activePlayers = players.filter(p => checkedIds.has(p.id));
+    const split = [...selectedSplit];
+
+    // Generate many random arrangements, keep best 2
+    const NUM_ATTEMPTS = 2000;
+    const scored = [];
+
+    for (let attempt = 0; attempt < NUM_ATTEMPTS; attempt++) {
+      const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
+      const groups = [];
+      let idx = 0;
+
+      for (let g = 0; g < split.length; g++) {
+        const groupSize = split[g];
+        const members = shuffled.slice(idx, idx + groupSize);
+        groups.push({
+          groupNumber: g + 1,
+          players: members
+        });
+        idx += groupSize;
+      }
+
+      const score = scoreGrouping(groups, historyData);
+      scored.push({ groups, score });
+    }
+
+    // Sort by score (lower is better)
+    scored.sort((a, b) => a.score - b.score);
+
+    // Pick top 2 that are meaningfully different
+    currentOptions[0] = scored[0];
+    currentOptions[1] = scored[1];
+
+    // Try to find a second option that's different enough
+    for (let i = 1; i < scored.length; i++) {
+      if (groupingDifference(scored[0].groups, scored[i].groups) > 0.3) {
+        currentOptions[1] = scored[i];
+        break;
+      }
+    }
+
+    renderResults();
+  } catch (err) {
+    showStatus('Error generating groups: ' + err.message, 'error');
+  }
+
+  btn.textContent = 'Generate Groups';
+  btn.disabled = false;
+}
+
+function scoreGrouping(groups, history) {
+  const { pairCounts, positionCounts } = history;
+  let pairScore = 0;
+  let posScore = 0;
+  const totalGroups = groups.length;
+
+  for (let g = 0; g < groups.length; g++) {
+    const members = groups[g].players;
+    const gNum = groups[g].groupNumber;
+
+    // Normalize position
+    const normalizedPos = totalGroups > 1
+      ? Math.round((gNum - 1) / (totalGroups - 1) * 2)
+      : 1;
+
+    // Pair scoring
+    for (let i = 0; i < members.length; i++) {
+      // Position scoring
+      const posKey = members[i].id + ':' + normalizedPos;
+      posScore += (positionCounts[posKey] || 0);
+
+      for (let j = i + 1; j < members.length; j++) {
+        const key = [members[i].id, members[j].id].sort().join('|');
+        pairScore += (pairCounts[key] || 0);
+      }
+    }
+  }
+
+  // Weight pairs more heavily than position
+  return pairScore * 3 + posScore;
+}
+
+function groupingDifference(g1, g2) {
+  // Measure how different two groupings are (0=identical, 1=completely different)
+  const pairs1 = new Set();
+  const pairs2 = new Set();
+
+  for (const group of g1) {
+    for (let i = 0; i < group.players.length; i++) {
+      for (let j = i + 1; j < group.players.length; j++) {
+        pairs1.add([group.players[i].id, group.players[j].id].sort().join('|'));
+      }
+    }
+  }
+
+  for (const group of g2) {
+    for (let i = 0; i < group.players.length; i++) {
+      for (let j = i + 1; j < group.players.length; j++) {
+        pairs2.add([group.players[i].id, group.players[j].id].sort().join('|'));
+      }
+    }
+  }
+
+  let overlap = 0;
+  for (const p of pairs1) if (pairs2.has(p)) overlap++;
+  return 1 - overlap / Math.max(pairs1.size, pairs2.size, 1);
+}
+
+// ========== RENDER RESULTS ==========
+function renderResults() {
+  document.getElementById('resultsCard').classList.remove('hidden');
+
+  for (let opt = 0; opt < 2; opt++) {
+    const container = document.getElementById(opt === 0 ? 'optionA' : 'optionB');
+    const { groups, score } = currentOptions[opt];
+
+    container.innerHTML = groups.map(g => `
+      <div class="group-card">
+        <div class="group-label">Group ${g.groupNumber} of ${groups.length}</div>
+        <div class="group-players">
+          ${g.players.map(p => `
+            <div class="player-entry">
+              <span>${p.name}</span>
+              <span class="hcp">${p.handicap != null ? p.handicap : '—'}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  showOption(0);
+
+  // Scroll to results
+  document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showOption(index) {
+  activeOption = index;
+  document.querySelectorAll('.option-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === index);
+  });
+  document.querySelectorAll('.option-content').forEach((el, i) => {
+    el.classList.toggle('active', i === index);
+  });
+}
+
+// ========== SAVE ROUND ==========
+async function saveRound() {
+  const option = currentOptions[activeOption];
+  if (!option) return;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Check if round already exists for today
+  const { data: existing } = await sb.from('rounds').select('id').eq('played_date', today);
+  if (existing && existing.length > 0) {
+    if (!confirm('A round already exists for today. Save anyway as a new round?')) return;
+  }
+
+  // Create round
+  const { data: round, error: roundErr } = await sb
+    .from('rounds')
+    .insert({
+      played_date: today,
+      format_name: 'Generated',
+      group_size: selectedSize
+    })
+    .select()
+    .single();
+
+  if (roundErr) return showStatus('Error saving round: ' + roundErr.message, 'error');
+
+  // Create group assignments
+  const inserts = [];
+  for (const group of option.groups) {
+    for (const player of group.players) {
+      inserts.push({
+        round_id: round.id,
+        group_number: group.groupNumber,
+        player_id: player.id,
+        handicap: player.handicap
+      });
+    }
+  }
+
+  const { error: groupErr } = await sb.from('round_groups').insert(inserts);
+  if (groupErr) return showStatus('Error saving groups: ' + groupErr.message, 'error');
+
+  // Clear history cache so next generate uses fresh data
+  historyData = null;
+
+  showStatus('Round saved! Groups are locked in for today.', 'success');
+}
+
+// ========== SETTINGS ==========
+function openSettings() {
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+async function saveSettings() {
+  const val = document.getElementById('lookbackInput').value;
+  lookbackWeeks = parseInt(val);
+
+  await sb.from('settings').update({ value: val.toString(), updated_at: new Date().toISOString() })
+    .eq('key', 'lookback_weeks');
+
+  historyData = null;
+  closeSettings();
+  showStatus('Lookback window set to ' + lookbackWeeks + ' weeks.', 'success');
+}
+
+// ========== STATUS MESSAGES ==========
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.className = 'status' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  if (type === 'success') {
+    setTimeout(() => { el.className = 'status'; el.textContent = ''; }, 4000);
+  }
+}
+
+// ========== START ==========
+init();
+</script>
+
+</body>
+</html>
