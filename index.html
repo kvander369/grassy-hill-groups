@@ -937,8 +937,8 @@ function scoreGrouping(groups, history) {
       }
     }
   }
-  // Small jitter prevents the algorithm from always converging to identical placements
-  return ps * 3 + pos + Math.random() * 2;
+  // Jitter prevents the algorithm from locking into identical placements every time
+  return ps * 3 + pos + Math.random() * (ps + pos + 4);
 }
 
 function groupingDiff(g1, g2) {
