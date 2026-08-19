@@ -640,7 +640,7 @@
     <div id="optionB" class="option-content"></div>
     <div class="result-actions">
       <button class="btn btn-secondary" onclick="generateGroups()">Generate More</button>
-      <button class="btn btn-secondary" onclick="downloadPDF()">📄 PDF</button>
+      <button id="pdfBtn" class="btn btn-secondary" onclick="downloadPDF()" disabled style="opacity:0.4">📄 PDF</button>
       <button class="btn btn-primary" onclick="saveRound()">Use This One</button>
     </div>
   </div>
@@ -1015,6 +1015,12 @@ async function saveRound() {
   saveBtn.textContent = '✅ Saved!';
   saveBtn.style.background = 'var(--sage)';
   saveBtn.disabled = true;
+
+  // Enable PDF download now that it's saved
+  const pdfBtn = document.getElementById('pdfBtn');
+  pdfBtn.disabled = false;
+  pdfBtn.style.opacity = '1';
+
   setTimeout(() => {
     saveBtn.textContent = 'Use This One';
     saveBtn.style.background = '';
