@@ -649,7 +649,7 @@
   <div class="modal">
     <h2>Settings</h2>
     <label for="lookbackInput">Lookback Window</label>
-    <input type="number" id="lookbackInput" min="1" max="52" value="6">
+    <input type="number" id="lookbackInput" min="1" max="52" value="4">
     <p class="modal-hint">
       How many weeks of history the algorithm considers when mixing up groups and tee time positions.
     </p>
@@ -669,7 +669,7 @@ let players = [];
 let checkedIds = new Set();
 let selectedSize = null;
 let selectedSplit = null;
-let lookbackWeeks = 6;
+let lookbackWeeks = 4;
 let historyData = null;
 let currentOptions = [null, null];
 let activeOption = 0;
