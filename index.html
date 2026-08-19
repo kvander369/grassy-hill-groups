@@ -809,42 +809,44 @@ function updateSplitOptions() {
 }
 
 function generateSplits(n, size) {
+  if (n % size === 0) return [Array(n / size).fill(size)];
+
   const results = [];
   const fullGroups = Math.floor(n / size);
   const leftover = n % size;
 
-  if (leftover === 0) { results.push(Array(fullGroups).fill(size)); return results; }
-
+  // Option A: max full groups + short group (if short >= 2)
   if (leftover >= 2) {
-    const s = Array(fullGroups).fill(size); s.push(leftover); results.push(s);
+    const s = Array(fullGroups).fill(size);
+    s.push(leftover);
+    s.sort((a,b) => b - a);
+    results.push(s);
   }
 
-  if (leftover > 0 && fullGroups > 0) {
-    const smaller = size - 1;
-    if (smaller >= 2) {
-      const need = size - leftover;
-      if (need <= fullGroups) {
-        const s = [];
-        for (let i = 0; i < fullGroups - need; i++) s.push(size);
-        for (let i = 0; i < need + 1; i++) s.push(smaller);
-        if (s.reduce((a,b) => a+b, 0) === n) results.push(s);
-      }
+  // Option B: even distribution using groups of size and (size-1)
+  // x*size + y*(size-1) = n, x+y = totalGroups
+  // solving: y = totalGroups*size - n, x = totalGroups - y
+  const totalGroups = Math.ceil(n / size);
+  const numSmall = totalGroups * size - n;
+  const numBig = totalGroups - numSmall;
+
+  if (numBig >= 0 && numSmall >= 0 && (size - 1) >= 2) {
+    const s = [];
+    for (let i = 0; i < numBig; i++) s.push(size);
+    for (let i = 0; i < numSmall; i++) s.push(size - 1);
+    if (s.reduce((a,b) => a+b, 0) === n) {
+      s.sort((a,b) => b - a);
+      results.push(s);
     }
   }
 
-  if (leftover === 1 && fullGroups > 0) {
-    results.length = 0;
-    const smaller = size - 1;
-    if (smaller >= 2) {
-      const s = Array(fullGroups - 1).fill(size); s.push(smaller); s.push(smaller);
-      if (s.reduce((a,b) => a+b, 0) === n && s.every(x => x >= 2)) results.push(s);
-    }
-  }
-
-  results.forEach(s => s.sort((a,b) => b - a));
-  const seen = new Set(); const unique = [];
-  for (const s of results) { const k = s.join(','); if (!seen.has(k)) { seen.add(k); unique.push(s); } }
-  return unique;
+  // Deduplicate
+  const seen = new Set();
+  return results.filter(s => {
+    const k = s.join(',');
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
 }
 
 function describeSplit(split) {
