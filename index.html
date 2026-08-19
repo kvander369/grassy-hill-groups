@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --forest: #1B4332;
@@ -639,6 +640,7 @@
     <div id="optionB" class="option-content"></div>
     <div class="result-actions">
       <button class="btn btn-secondary" onclick="generateGroups()">Generate More</button>
+      <button class="btn btn-secondary" onclick="downloadPDF()">📄 PDF</button>
       <button class="btn btn-primary" onclick="saveRound()">Use This One</button>
     </div>
   </div>
@@ -1018,6 +1020,65 @@ async function saveRound() {
     saveBtn.style.background = '';
     saveBtn.disabled = false;
   }, 3000);
+}
+
+function downloadPDF() {
+  const option = currentOptions[activeOption];
+  if (!option) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const margin = 50;
+  let y = margin;
+
+  // Header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(27, 67, 50);
+  doc.text('GHWGA Tee Sheet', margin, y);
+  y += 28;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(100, 100, 100);
+  doc.text(dateStr, margin, y);
+  y += 10;
+
+  // Divider
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y, 562, y);
+  y += 24;
+
+  // Groups
+  const { groups } = option;
+  for (const g of groups) {
+    // Check page break
+    if (y > 700) { doc.addPage(); y = margin; }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(27, 67, 50);
+    doc.text('Group ' + g.groupNumber + ' of ' + groups.length, margin, y);
+    y += 20;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(60, 60, 60);
+
+    for (const p of g.players) {
+      const hcp = p.handicap != null ? p.handicap.toString() : '–';
+      doc.text(p.name, margin + 12, y);
+      doc.setTextColor(130, 130, 130);
+      doc.text(hcp, 300, y);
+      doc.setTextColor(60, 60, 60);
+      y += 18;
+    }
+    y += 14;
+  }
+
+  doc.save('GHWGA_TeeSheet_' + today.toISOString().split('T')[0] + '.pdf');
 }
 
 function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
