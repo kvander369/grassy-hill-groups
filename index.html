@@ -985,9 +985,12 @@ async function saveRound() {
   if (!option) return;
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: existing } = await sb.from('rounds').select('id').eq('played_date', today);
+  const { data: existing } = await sb.from('rounds').select('id').eq('played_date', today).eq('format_name', 'Generated');
   if (existing && existing.length > 0) {
-    if (!confirm('A round already exists for today. Save anyway?')) return;
+    if (!confirm('Replace today\'s existing groups with this selection?')) return;
+    for (const old of existing) {
+      await sb.from('rounds').delete().eq('id', old.id);
+    }
   }
 
   const { data: round, error: re } = await sb.from('rounds')
