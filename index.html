@@ -156,9 +156,8 @@
   .link-btn:hover { color: var(--forest); }
 
   .roster-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 4px;
+    column-count: 2;
+    column-gap: 8px;
   }
 
   .player-row {
@@ -170,6 +169,7 @@
     transition: all 0.15s;
     user-select: none;
     border: 1px solid transparent;
+    break-inside: avoid;
   }
 
   .player-row:hover { background: var(--cream); }
@@ -554,7 +554,7 @@
   .hidden { display: none !important; }
 
   @media (max-width: 500px) {
-    .roster-grid { grid-template-columns: 1fr; }
+    .roster-grid { column-count: 1; }
     .header-sub { display: none; }
     .card { padding: 18px; }
   }
