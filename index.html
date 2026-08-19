@@ -913,7 +913,7 @@ async function generateGroups() {
     currentOptions[1] = scored[1];
 
     for (let i = 1; i < scored.length; i++) {
-      if (groupingDiff(scored[0].groups, scored[i].groups) > 0.3) { currentOptions[1] = scored[i]; break; }
+      if (groupingDiff(scored[0].groups, scored[i].groups) > 0.6) { currentOptions[1] = scored[i]; break; }
     }
 
     renderResults();
