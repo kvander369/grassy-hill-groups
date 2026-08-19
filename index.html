@@ -54,7 +54,7 @@
   .header-inner {
     max-width: 680px;
     margin: 0 auto;
-    padding: 18px 24px;
+    padding: 12px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -62,8 +62,23 @@
 
   .header-brand {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .header-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: white;
+  }
+
+  .header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
   }
 
   header h1 {
@@ -550,8 +565,11 @@
 <header>
   <div class="header-inner">
     <div class="header-brand">
-      <h1>Grassy Hill</h1>
-      <span class="header-sub">Tee Sheet</span>
+      <img src="ghlogo.png" alt="GHWGA Golf" class="header-logo">
+      <div class="header-text">
+        <h1>GHWGA</h1>
+        <span class="header-sub">Tee Sheet</span>
+      </div>
     </div>
     <button class="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
   </div>
