@@ -828,6 +828,10 @@ async function loadHistory() {
   const pairCounts = {};
   const positionHistory = {};
   const byRound = {};
+  const today = new Date();
+  const maxDays = lookbackWeeks * 7;
+  const roundDateMap = {};
+  for (const r of rounds) roundDateMap[r.id] = new Date(r.played_date + 'T00:00:00');
 
   for (const g of groups) {
     if (!byRound[g.round_id]) byRound[g.round_id] = {};
@@ -839,6 +843,8 @@ async function loadHistory() {
     const round = byRound[roundId];
     const groupNums = Object.keys(round).map(Number).sort((a,b) => a - b);
     const total = groupNums.length;
+    const daysAgo = (today - roundDateMap[roundId]) / (1000 * 60 * 60 * 24);
+    const weight = Math.max(0, 1 - daysAgo / maxDays);
 
     for (const gNum of groupNums) {
       const members = round[gNum];
@@ -846,11 +852,11 @@ async function loadHistory() {
 
       for (let i = 0; i < members.length; i++) {
         if (!positionHistory[members[i]]) positionHistory[members[i]] = [];
-        positionHistory[members[i]].push(contPos);
+        positionHistory[members[i]].push({ pos: contPos, w: weight });
 
         for (let j = i + 1; j < members.length; j++) {
           const key = [members[i], members[j]].sort().join('|');
-          pairCounts[key] = (pairCounts[key] || 0) + 1;
+          pairCounts[key] = (pairCounts[key] || 0) + weight;
         }
       }
     }
@@ -1029,6 +1035,14 @@ function updateGenerateButton() {
   document.getElementById('generateBtn').disabled = !(checkedIds.size >= 2 && selectedSize && selectedSplit);
 }
 
+function fisherYates(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 async function generateGroups() {
   const btn = document.getElementById('generateBtn');
   btn.textContent = 'GENERATING…'; btn.disabled = true;
@@ -1041,7 +1055,7 @@ async function generateGroups() {
     const scored = [];
 
     for (let a = 0; a < 2000; a++) {
-      const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
+      const shuffled = fisherYates([...activePlayers]);
       const groups = []; let idx = 0;
       for (let g = 0; g < split.length; g++) {
         groups.push({ groupNumber: g + 1, players: shuffled.slice(idx, idx + split[g]) });
@@ -1070,8 +1084,8 @@ function scoreGrouping(groups, history) {
     for (let i = 0; i < m.length; i++) {
       const hist = positionHistory[m[i].id];
       if (hist) {
-        for (const oldPos of hist) {
-          pos += 1 - Math.abs(contPos - oldPos);
+        for (const entry of hist) {
+          pos += (1 - Math.abs(contPos - entry.pos)) * entry.w;
         }
       }
       for (let j = i + 1; j < m.length; j++) {
