@@ -584,6 +584,26 @@
 
   .flight-row input[type="number"]:focus { outline: none; border-color: var(--sage); }
 
+  /* ===== SHUFFLE SLIDER ===== */
+  .shuffle-slider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .shuffle-slider span.end-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .shuffle-slider input[type="range"] {
+    flex: 1;
+    accent-color: var(--forest);
+    cursor: pointer;
+  }
+
   .hidden { display: none !important; }
 
   @media (max-width: 500px) {
@@ -694,6 +714,16 @@
       <p class="modal-hint">Handicap cutoffs for A / B / C flight tags.</p>
     </div>
 
+    <div class="setting-group">
+      <label>Mix It Up</label>
+      <div class="shuffle-slider">
+        <span class="end-label">Optimized</span>
+        <input type="range" id="shuffleInput" min="0" max="10" value="3">
+        <span class="end-label">More random</span>
+      </div>
+      <p class="modal-hint">Crank this up if the groups feel too predictable.</p>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeSettings()" style="padding:10px 20px">Cancel</button>
       <button class="btn btn-primary" onclick="saveSettings()" style="padding:10px 20px">Save</button>
@@ -717,7 +747,7 @@ let flightAMax = 17;
 let flightBMax = 25;
 const weightPartner = 5;
 const weightPosition = 3;
-const weightRandom = 3;
+let weightRandom = 3;
 
 async function init() {
   await loadSettings();
@@ -740,12 +770,14 @@ async function loadSettings() {
         case 'lookback_weeks': lookbackWeeks = parseInt(s.value); break;
         case 'flight_a_max': flightAMax = parseInt(s.value); break;
         case 'flight_b_max': flightBMax = parseInt(s.value); break;
+        case 'weight_random': weightRandom = parseInt(s.value); break;
       }
     }
   }
   document.getElementById('lookbackInput').value = lookbackWeeks;
   document.getElementById('flightAInput').value = flightAMax;
   document.getElementById('flightBInput').value = flightBMax;
+  document.getElementById('shuffleInput').value = weightRandom;
 }
 
 function getFlight(hcp) {
@@ -1173,6 +1205,7 @@ function openSettings() {
   document.getElementById('lookbackInput').value = lookbackWeeks;
   document.getElementById('flightAInput').value = flightAMax;
   document.getElementById('flightBInput').value = flightBMax;
+  document.getElementById('shuffleInput').value = weightRandom;
   document.getElementById('settingsModal').classList.add('open');
 }
 
@@ -1182,11 +1215,13 @@ async function saveSettings() {
   lookbackWeeks = parseInt(document.getElementById('lookbackInput').value);
   flightAMax = parseInt(document.getElementById('flightAInput').value);
   flightBMax = parseInt(document.getElementById('flightBInput').value);
+  weightRandom = parseInt(document.getElementById('shuffleInput').value);
 
   const pairs = [
     ['lookback_weeks', lookbackWeeks],
     ['flight_a_max', flightAMax],
     ['flight_b_max', flightBMax],
+    ['weight_random', weightRandom],
   ];
   const now = new Date().toISOString();
   for (const [k, v] of pairs) {
