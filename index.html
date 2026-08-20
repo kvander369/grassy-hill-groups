@@ -203,9 +203,29 @@
     font-size: 12px;
     color: var(--text-muted);
     font-weight: 600;
-    min-width: 24px;
+    min-width: 32px;
     text-align: right;
     letter-spacing: 0.3px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .player-hcp:hover { background: var(--cream-dark); }
+
+  .hcp-edit {
+    width: 48px;
+    padding: 2px 4px;
+    border: 1px solid var(--sage);
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text);
+    background: var(--warm-white);
+    outline: none;
   }
 
   .checked-count {
@@ -704,14 +724,14 @@
     <div class="setting-group">
       <label>Algorithm Weights</label>
       <div class="slider-row">
-        <span class="slider-label">Partner variety</span>
-        <input type="range" id="weightPartnerInput" min="0" max="10" value="5" oninput="document.getElementById('weightPartnerVal').textContent=this.value">
-        <span class="slider-val" id="weightPartnerVal">5</span>
-      </div>
-      <div class="slider-row">
         <span class="slider-label">Position variety</span>
         <input type="range" id="weightPositionInput" min="0" max="10" value="3" oninput="document.getElementById('weightPositionVal').textContent=this.value">
         <span class="slider-val" id="weightPositionVal">3</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Partner variety</span>
+        <input type="range" id="weightPartnerInput" min="0" max="10" value="5" oninput="document.getElementById('weightPartnerVal').textContent=this.value">
+        <span class="slider-val" id="weightPartnerVal">5</span>
       </div>
       <div class="slider-row">
         <span class="slider-label">Randomness</span>
@@ -844,7 +864,7 @@ function renderRoster() {
     <label class="player-row ${checkedIds.has(p.id) ? 'checked' : ''}" data-id="${p.id}">
       <input type="checkbox" ${checkedIds.has(p.id) ? 'checked' : ''} onchange="togglePlayer('${p.id}')">
       <span class="player-name">${p.name}<span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span></span>
-      <span class="player-hcp">${p.handicap != null ? p.handicap : '–'}</span>
+      <span class="player-hcp" onclick="event.stopPropagation();editHcp('${p.id}',this)" title="Tap to edit">${p.handicap != null ? p.handicap : '–'}</span>
     </label>
   `).join('');
 }
@@ -884,6 +904,33 @@ async function addPlayer() {
   renderRoster(); updateCheckedCount();
   nameEl.value = ''; hcpEl.value = '';
   showStatus(name + ' added to roster and checked in.', 'success');
+}
+
+function editHcp(playerId, el) {
+  const player = players.find(p => p.id === playerId);
+  if (!player) return;
+  const current = player.handicap != null ? player.handicap : '';
+  el.innerHTML = `<input class="hcp-edit" type="number" step="0.1" value="${current}" 
+    onblur="saveHcp('${playerId}',this)" 
+    onkeydown="if(event.key==='Enter')this.blur()">`;
+  const inp = el.querySelector('input');
+  inp.focus();
+  inp.select();
+}
+
+async function saveHcp(playerId, inp) {
+  const raw = inp.value.trim();
+  const hcp = raw === '' ? null : parseFloat(raw);
+  const player = players.find(p => p.id === playerId);
+  if (!player) return;
+
+  if (hcp === player.handicap) { renderRoster(); return; }
+
+  const { error } = await sb.from('players').update({ handicap: hcp }).eq('id', playerId);
+  if (error) { showStatus('Error saving handicap: ' + error.message, 'error'); renderRoster(); return; }
+
+  player.handicap = hcp;
+  renderRoster();
 }
 
 function selectSize(size) {
