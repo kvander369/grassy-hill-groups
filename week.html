@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>GHWGA – This Week's Groups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --forest: #2E7D32;
+    --forest-light: #43A047;
+    --sage: #66BB6A;
+    --sage-light: #A5D6A7;
+    --cream: #F8F6F0;
+    --cream-dark: #EDE8DD;
+    --warm-white: #FDFCF9;
+    --gold: #C9A84C;
+    --gold-light: #F1E8C8;
+    --charcoal: #2F2F2F;
+    --text: #3D3D3D;
+    --text-muted: #7A7A7A;
+    --border: #E2DED5;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    background: var(--forest);
+    color: var(--cream);
+    box-shadow: 0 2px 20px rgba(27,67,50,0.3);
+  }
+
+  .header-inner {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .header-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: white;
+  }
+
+  .header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--sage-light);
+  }
+
+  .container { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  .date-banner {
+    text-align: center;
+    padding: 20px 0 8px;
+  }
+
+  .date-banner .date-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--forest);
+  }
+
+  .date-banner .date-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .group-card {
+    background: var(--warm-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--gold);
+  }
+
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--sage);
+    margin-bottom: 10px;
+  }
+
+  .player-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .player-entry:last-child { border-bottom: none; }
+
+  .p-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--charcoal);
+  }
+
+  .p-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .p-hcp {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .flight-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .flight-A { background: #C8E6C9; color: #2E7D32; }
+  .flight-B { background: #BBDEFB; color: #1565C0; }
+  .flight-C { background: #FFE0B2; color: #E65100; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .empty-state .emoji { font-size: 36px; margin-bottom: 12px; }
+
+  .player-count {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 500px) {
+    .header-sub { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <img src="ghlogo.png" alt="GHWGA Golf" class="header-logo">
+    <div class="header-text">
+      <h1>GHWGA</h1>
+      <span class="header-sub">Tee Sheet</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div id="content">
+    <div class="empty-state">Loading…</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lackcooiarpahgmkrpeu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_tJiFVeYxpyuARtzVn41u-Q_1zkILqdF';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let flightAMax = 17;
+let flightBMax = 25;
+
+function getFlight(hcp) {
+  if (hcp == null) return 'C';
+  if (hcp <= flightAMax) return 'A';
+  if (hcp <= flightBMax) return 'B';
+  return 'C';
+}
+
+async function loadSettings() {
+  const { data } = await sb.from('settings').select('*');
+  if (data) {
+    for (const s of data) {
+      if (s.key === 'flight_a_max') flightAMax = parseInt(s.value);
+      if (s.key === 'flight_b_max') flightBMax = parseInt(s.value);
+    }
+  }
+}
+
+async function loadWeek() {
+  await loadSettings();
+
+  const params = new URLSearchParams(window.location.search);
+  const requestedDate = params.get('date');
+
+  let round;
+  if (requestedDate) {
+    const { data } = await sb.from('rounds').select('*')
+      .eq('played_date', requestedDate).eq('format_name', 'Generated').single();
+    round = data;
+  } else {
+    const { data } = await sb.from('rounds').select('*')
+      .eq('format_name', 'Generated').order('played_date', { ascending: false }).limit(1).single();
+    round = data;
+  }
+
+  if (!round) {
+    document.getElementById('content').innerHTML =
+      '<div class="empty-state"><div class="emoji">⛳</div>No groups posted yet.<br>Check back after they\'re set!</div>';
+    return;
+  }
+
+  const { data: groupRows } = await sb.from('round_groups').select('group_number, player_id')
+    .eq('round_id', round.id).order('group_number');
+
+  const playerIds = [...new Set(groupRows.map(g => g.player_id))];
+  const { data: playerData } = await sb.from('players').select('id, name, handicap')
+    .in('id', playerIds);
+
+  const playerMap = {};
+  for (const p of playerData) playerMap[p.id] = p;
+
+  const groups = {};
+  for (const g of groupRows) {
+    if (!groups[g.group_number]) groups[g.group_number] = [];
+    groups[g.group_number].push(playerMap[g.player_id]);
+  }
+
+  const groupNums = Object.keys(groups).map(Number).sort((a, b) => a - b);
+  const totalGroups = groupNums.length;
+  const totalPlayers = groupRows.length;
+
+  const d = new Date(round.played_date + 'T12:00:00');
+  const dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  let html = `<div class="date-banner">
+    <div class="date-label">${dateStr}</div>
+    <div class="date-sub">${totalPlayers} players · ${totalGroups} groups</div>
+  </div>`;
+
+  for (const gNum of groupNums) {
+    const players = groups[gNum];
+    html += `<div class="group-card">
+      <div class="group-label">Group ${gNum} of ${totalGroups}</div>
+      ${players.map(p => `
+        <div class="player-entry">
+          <span class="p-name">${p.name}</span>
+          <span class="p-right">
+            <span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span>
+            <span class="p-hcp">${p.handicap != null ? p.handicap : '–'}</span>
+          </span>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  document.getElementById('content').innerHTML = html;
+  document.title = 'GHWGA Tee Sheet – ' + dateStr;
+}
+
+loadWeek();
+</script>
+</body>
+</html>

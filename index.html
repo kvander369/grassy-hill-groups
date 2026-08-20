@@ -703,6 +703,7 @@
     <div class="result-actions">
       <button class="btn btn-secondary" onclick="generateGroups()">Generate More</button>
       <button id="pdfBtn" class="btn btn-secondary" onclick="downloadPDF()" disabled style="opacity:0.4">📄 PDF</button>
+      <button id="shareBtn" class="btn btn-secondary" onclick="shareLink()" disabled style="opacity:0.4">🔗 Share</button>
       <button class="btn btn-primary" onclick="saveRound()">Use This One</button>
     </div>
   </div>
@@ -1153,10 +1154,13 @@ async function saveRound() {
   saveBtn.style.background = 'var(--sage)';
   saveBtn.disabled = true;
 
-  // Enable PDF download now that it's saved
+  // Enable PDF and Share now that it's saved
   const pdfBtn = document.getElementById('pdfBtn');
   pdfBtn.disabled = false;
   pdfBtn.style.opacity = '1';
+  const shareBtn = document.getElementById('shareBtn');
+  shareBtn.disabled = false;
+  shareBtn.style.opacity = '1';
 
   setTimeout(() => {
     saveBtn.textContent = 'Use This One';
@@ -1229,6 +1233,23 @@ function downloadPDF() {
   }
 
   doc.save('GHWGA_TeeSheet_' + today.toISOString().split('T')[0] + '.pdf');
+}
+
+function shareLink() {
+  const today = new Date().toISOString().split('T')[0];
+  const url = location.origin + location.pathname.replace('index.html', '') + 'week.html?date=' + today;
+
+  if (navigator.share) {
+    navigator.share({ title: 'GHWGA Tee Sheet', text: 'This week\'s groups are up!', url: url });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('shareBtn');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => { btn.textContent = '🔗 Share'; }, 2500);
+    });
+  } else {
+    prompt('Copy this link:', url);
+  }
 }
 
 function openSettings() {
