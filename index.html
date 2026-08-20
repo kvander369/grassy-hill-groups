@@ -556,7 +556,7 @@
 
   .flight-A { background: #C8E6C9; color: #2E7D32; }
   .flight-B { background: #BBDEFB; color: #1565C0; }
-  .flight-C { background: #E0E0E0; color: #616161; }
+  .flight-C { background: #FFE0B2; color: #E65100; }
 
   /* ===== SETTINGS SLIDERS ===== */
   .setting-group { margin-top: 20px; }
@@ -1190,7 +1190,7 @@ function downloadPDF() {
       const fl = getFlight(p.handicap);
       doc.text(p.name, margin + 12, y);
       doc.setFontSize(10);
-      const flColors = { A: [46,125,50], B: [21,101,192], C: [130,130,130] };
+      const flColors = { A: [46,125,50], B: [21,101,192], C: [230,81,0] };
       const fc = flColors[fl] || flColors.C;
       doc.setTextColor(fc[0], fc[1], fc[2]);
       doc.text(fl, 260, y);
