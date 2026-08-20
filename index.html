@@ -584,33 +584,6 @@
 
   .flight-row input[type="number"]:focus { outline: none; border-color: var(--sage); }
 
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .slider-row .slider-label {
-    font-size: 13px;
-    color: var(--text);
-    min-width: 110px;
-  }
-
-  .slider-row input[type="range"] {
-    flex: 1;
-    accent-color: var(--forest);
-    cursor: pointer;
-  }
-
-  .slider-row .slider-val {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--forest);
-    min-width: 20px;
-    text-align: center;
-  }
-
   .hidden { display: none !important; }
 
   @media (max-width: 500px) {
@@ -721,26 +694,6 @@
       <p class="modal-hint">Handicap cutoffs for A / B / C flight tags.</p>
     </div>
 
-    <div class="setting-group">
-      <label>Algorithm Weights</label>
-      <div class="slider-row">
-        <span class="slider-label">Position variety</span>
-        <input type="range" id="weightPositionInput" min="0" max="10" value="3" oninput="document.getElementById('weightPositionVal').textContent=this.value">
-        <span class="slider-val" id="weightPositionVal">3</span>
-      </div>
-      <div class="slider-row">
-        <span class="slider-label">Partner variety</span>
-        <input type="range" id="weightPartnerInput" min="0" max="10" value="5" oninput="document.getElementById('weightPartnerVal').textContent=this.value">
-        <span class="slider-val" id="weightPartnerVal">5</span>
-      </div>
-      <div class="slider-row">
-        <span class="slider-label">Randomness</span>
-        <input type="range" id="weightRandomInput" min="0" max="10" value="3" oninput="document.getElementById('weightRandomVal').textContent=this.value">
-        <span class="slider-val" id="weightRandomVal">3</span>
-      </div>
-      <p class="modal-hint">Tune how the algorithm balances partner mixing, tee-time position variety, and pure shuffle.</p>
-    </div>
-
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeSettings()" style="padding:10px 20px">Cancel</button>
       <button class="btn btn-primary" onclick="saveSettings()" style="padding:10px 20px">Save</button>
@@ -762,9 +715,9 @@ let historyData = null;
 let currentResult = null;
 let flightAMax = 17;
 let flightBMax = 25;
-let weightPartner = 5;
-let weightPosition = 3;
-let weightRandom = 3;
+const weightPartner = 5;
+const weightPosition = 3;
+const weightRandom = 3;
 
 async function init() {
   await loadSettings();
@@ -787,21 +740,12 @@ async function loadSettings() {
         case 'lookback_weeks': lookbackWeeks = parseInt(s.value); break;
         case 'flight_a_max': flightAMax = parseInt(s.value); break;
         case 'flight_b_max': flightBMax = parseInt(s.value); break;
-        case 'weight_partner': weightPartner = parseInt(s.value); break;
-        case 'weight_position': weightPosition = parseInt(s.value); break;
-        case 'weight_random': weightRandom = parseInt(s.value); break;
       }
     }
   }
   document.getElementById('lookbackInput').value = lookbackWeeks;
   document.getElementById('flightAInput').value = flightAMax;
   document.getElementById('flightBInput').value = flightBMax;
-  document.getElementById('weightPartnerInput').value = weightPartner;
-  document.getElementById('weightPositionInput').value = weightPosition;
-  document.getElementById('weightRandomInput').value = weightRandom;
-  document.getElementById('weightPartnerVal').textContent = weightPartner;
-  document.getElementById('weightPositionVal').textContent = weightPosition;
-  document.getElementById('weightRandomVal').textContent = weightRandom;
 }
 
 function getFlight(hcp) {
@@ -1229,12 +1173,6 @@ function openSettings() {
   document.getElementById('lookbackInput').value = lookbackWeeks;
   document.getElementById('flightAInput').value = flightAMax;
   document.getElementById('flightBInput').value = flightBMax;
-  document.getElementById('weightPartnerInput').value = weightPartner;
-  document.getElementById('weightPositionInput').value = weightPosition;
-  document.getElementById('weightRandomInput').value = weightRandom;
-  document.getElementById('weightPartnerVal').textContent = weightPartner;
-  document.getElementById('weightPositionVal').textContent = weightPosition;
-  document.getElementById('weightRandomVal').textContent = weightRandom;
   document.getElementById('settingsModal').classList.add('open');
 }
 
@@ -1244,17 +1182,11 @@ async function saveSettings() {
   lookbackWeeks = parseInt(document.getElementById('lookbackInput').value);
   flightAMax = parseInt(document.getElementById('flightAInput').value);
   flightBMax = parseInt(document.getElementById('flightBInput').value);
-  weightPartner = parseInt(document.getElementById('weightPartnerInput').value);
-  weightPosition = parseInt(document.getElementById('weightPositionInput').value);
-  weightRandom = parseInt(document.getElementById('weightRandomInput').value);
 
   const pairs = [
     ['lookback_weeks', lookbackWeeks],
     ['flight_a_max', flightAMax],
     ['flight_b_max', flightBMax],
-    ['weight_partner', weightPartner],
-    ['weight_position', weightPosition],
-    ['weight_random', weightRandom],
   ];
   const now = new Date().toISOString();
   for (const [k, v] of pairs) {
