@@ -819,14 +819,14 @@ async function loadHistory() {
   const { data: rounds } = await sb.from('rounds').select('id, played_date, group_size')
     .gte('played_date', cutoffStr).order('played_date', { ascending: false });
 
-  if (!rounds || rounds.length === 0) return { pairCounts: {}, positionCounts: {} };
+  if (!rounds || rounds.length === 0) return { pairCounts: {}, positionHistory: {} };
 
   const roundIds = rounds.map(r => r.id);
   const { data: groups } = await sb.from('round_groups').select('round_id, group_number, player_id')
     .in('round_id', roundIds);
 
   const pairCounts = {};
-  const positionCounts = {};
+  const positionHistory = {};
   const byRound = {};
 
   for (const g of groups) {
@@ -842,11 +842,11 @@ async function loadHistory() {
 
     for (const gNum of groupNums) {
       const members = round[gNum];
-      const normPos = total > 1 ? Math.round((gNum - 1) / (total - 1) * 4) : 2;
+      const contPos = total > 1 ? (gNum - 1) / (total - 1) : 0.5;
 
       for (let i = 0; i < members.length; i++) {
-        const posKey = members[i] + ':' + normPos;
-        positionCounts[posKey] = (positionCounts[posKey] || 0) + 1;
+        if (!positionHistory[members[i]]) positionHistory[members[i]] = [];
+        positionHistory[members[i]].push(contPos);
 
         for (let j = i + 1; j < members.length; j++) {
           const key = [members[i], members[j]].sort().join('|');
@@ -856,7 +856,7 @@ async function loadHistory() {
     }
   }
 
-  return { pairCounts, positionCounts };
+  return { pairCounts, positionHistory };
 }
 
 function renderRoster() {
@@ -1059,16 +1059,21 @@ async function generateGroups() {
 }
 
 function scoreGrouping(groups, history) {
-  const { pairCounts, positionCounts } = history;
+  const { pairCounts, positionHistory } = history;
   let ps = 0, pos = 0;
   const total = groups.length;
 
   for (const g of groups) {
     const m = g.players;
-    const np = total > 1 ? Math.round((g.groupNumber - 1) / (total - 1) * 4) : 2;
+    const contPos = total > 1 ? (g.groupNumber - 1) / (total - 1) : 0.5;
 
     for (let i = 0; i < m.length; i++) {
-      pos += (positionCounts[m[i].id + ':' + np] || 0);
+      const hist = positionHistory[m[i].id];
+      if (hist) {
+        for (const oldPos of hist) {
+          pos += 1 - Math.abs(contPos - oldPos);
+        }
+      }
       for (let j = i + 1; j < m.length; j++) {
         ps += (pairCounts[[m[i].id, m[j].id].sort().join('|')] || 0);
       }
