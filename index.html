@@ -861,11 +861,11 @@ async function loadHistory() {
 
 function renderRoster() {
   document.getElementById('roster').innerHTML = players.map(p => `
-    <label class="player-row ${checkedIds.has(p.id) ? 'checked' : ''}" data-id="${p.id}">
-      <input type="checkbox" ${checkedIds.has(p.id) ? 'checked' : ''} onchange="togglePlayer('${p.id}')">
+    <div class="player-row ${checkedIds.has(p.id) ? 'checked' : ''}" data-id="${p.id}" onclick="togglePlayer('${p.id}')">
+      <input type="checkbox" ${checkedIds.has(p.id) ? 'checked' : ''} onclick="event.stopPropagation()" onchange="togglePlayer('${p.id}')">
       <span class="player-name">${p.name}<span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span></span>
-      <span class="player-hcp" onclick="event.preventDefault();event.stopPropagation();editHcp('${p.id}',this)" title="Tap to edit">${p.handicap != null ? p.handicap : '–'}</span>
-    </label>
+      <span class="player-hcp" onclick="event.stopPropagation();editHcp('${p.id}',this)" title="Tap to edit">${p.handicap != null ? p.handicap : '–'}</span>
+    </div>
   `).join('');
 }
 
