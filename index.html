@@ -214,6 +214,21 @@
 
   .player-hcp:hover { background: var(--cream-dark); }
 
+  .player-delete {
+    font-size: 14px;
+    color: var(--border);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    margin-left: 4px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+
+  .player-delete:hover { color: var(--red-soft); }
+
   .hcp-edit {
     width: 48px;
     padding: 2px 4px;
@@ -847,6 +862,7 @@ function renderRoster() {
       <input type="checkbox" ${checkedIds.has(p.id) ? 'checked' : ''} onclick="event.stopPropagation()" onchange="togglePlayer('${p.id}')">
       <span class="player-name">${p.name}<span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span></span>
       <span class="player-hcp" onclick="event.stopPropagation();editHcp('${p.id}',this)" title="Tap to edit">${p.handicap != null ? p.handicap : '–'}</span>
+      <button class="player-delete" onclick="event.stopPropagation();deletePlayer('${p.id}','${p.name.replace(/'/g, "\\'")}')" title="Remove">×</button>
     </div>
   `).join('');
 }
@@ -913,6 +929,20 @@ async function saveHcp(playerId, inp) {
 
   player.handicap = hcp;
   renderRoster();
+}
+
+async function deletePlayer(playerId, name) {
+  if (!confirm('Remove ' + name + ' from the roster?\nThis also removes their grouping history.')) return;
+
+  await sb.from('round_groups').delete().eq('player_id', playerId);
+  const { error } = await sb.from('players').delete().eq('id', playerId);
+  if (error) return showStatus('Error removing: ' + error.message, 'error');
+
+  players = players.filter(p => p.id !== playerId);
+  checkedIds.delete(playerId);
+  historyData = null;
+  renderRoster(); updateCheckedCount(); updateSplitOptions();
+  showStatus(name + ' removed from roster.', 'success');
 }
 
 function selectSize(size) {
