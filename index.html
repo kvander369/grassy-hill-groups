@@ -842,7 +842,7 @@ async function loadHistory() {
 
     for (const gNum of groupNums) {
       const members = round[gNum];
-      const normPos = total > 1 ? Math.round((gNum - 1) / (total - 1) * 2) : 1;
+      const normPos = total > 1 ? Math.round((gNum - 1) / (total - 1) * 4) : 2;
 
       for (let i = 0; i < members.length; i++) {
         const posKey = members[i] + ':' + normPos;
@@ -1065,7 +1065,7 @@ function scoreGrouping(groups, history) {
 
   for (const g of groups) {
     const m = g.players;
-    const np = total > 1 ? Math.round((g.groupNumber - 1) / (total - 1) * 2) : 1;
+    const np = total > 1 ? Math.round((g.groupNumber - 1) / (total - 1) * 4) : 2;
 
     for (let i = 0; i < m.length; i++) {
       pos += (positionCounts[m[i].id + ':' + np] || 0);
