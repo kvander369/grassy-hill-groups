@@ -385,40 +385,6 @@
     align-items: center;
   }
 
-  .option-tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 20px;
-    background: var(--cream);
-    border-radius: var(--radius-sm);
-    padding: 4px;
-  }
-
-  .option-tab {
-    flex: 1;
-    padding: 10px 16px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    font-family: inherit;
-    background: transparent;
-    color: var(--text-muted);
-    border: none;
-    border-radius: 6px;
-    transition: all 0.2s;
-    letter-spacing: 0.3px;
-  }
-
-  .option-tab.active {
-    background: var(--forest);
-    color: var(--cream);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .option-content { display: none; }
-  .option-content.active { display: block; }
-
   .group-card {
     background: var(--cream);
     border-radius: var(--radius-sm);
@@ -555,6 +521,76 @@
     border-color: #E8B4B4;
   }
 
+  /* ===== FLIGHT BADGES ===== */
+  .flight-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    line-height: 1;
+  }
+
+  .flight-A { background: #C8E6C9; color: #2E7D32; }
+  .flight-B { background: #BBDEFB; color: #1565C0; }
+  .flight-C { background: #E0E0E0; color: #616161; }
+
+  /* ===== SETTINGS SLIDERS ===== */
+  .setting-group { margin-top: 20px; }
+
+  .flight-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 6px;
+  }
+
+  .flight-row span { font-size: 13px; color: var(--text); white-space: nowrap; }
+  .flight-row span.rest { color: var(--text-muted); }
+
+  .flight-row input[type="number"] {
+    width: 65px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--cream);
+    text-align: center;
+  }
+
+  .flight-row input[type="number"]:focus { outline: none; border-color: var(--sage); }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .slider-row .slider-label {
+    font-size: 13px;
+    color: var(--text);
+    min-width: 110px;
+  }
+
+  .slider-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--forest);
+    cursor: pointer;
+  }
+
+  .slider-row .slider-val {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--forest);
+    min-width: 20px;
+    text-align: center;
+  }
+
   .hidden { display: none !important; }
 
   @media (max-width: 500px) {
@@ -635,12 +671,7 @@
   <!-- Results -->
   <div id="resultsCard" class="card hidden">
     <div class="card-title" style="margin-bottom:16px">Today's Groups</div>
-    <div class="option-tabs">
-      <button class="option-tab active" onclick="showOption(0)">Option A</button>
-      <button class="option-tab" onclick="showOption(1)">Option B</button>
-    </div>
-    <div id="optionA" class="option-content active"></div>
-    <div id="optionB" class="option-content"></div>
+    <div id="resultsContainer"></div>
     <div class="result-actions">
       <button class="btn btn-secondary" onclick="generateGroups()">Generate More</button>
       <button id="pdfBtn" class="btn btn-secondary" onclick="downloadPDF()" disabled style="opacity:0.4">📄 PDF</button>
@@ -656,9 +687,40 @@
     <h2>Settings</h2>
     <label for="lookbackInput">Lookback Window</label>
     <input type="number" id="lookbackInput" min="1" max="52" value="4">
-    <p class="modal-hint">
-      How many weeks of history the algorithm considers when mixing up groups and tee time positions.
-    </p>
+    <p class="modal-hint">Weeks of history considered when mixing groups.</p>
+
+    <div class="setting-group">
+      <label>Flight Boundaries</label>
+      <div class="flight-row">
+        <span>A ≤</span>
+        <input type="number" id="flightAInput" min="0" max="54" value="17">
+        <span>B ≤</span>
+        <input type="number" id="flightBInput" min="0" max="54" value="25">
+        <span class="rest">C = rest</span>
+      </div>
+      <p class="modal-hint">Handicap cutoffs for A / B / C flight tags.</p>
+    </div>
+
+    <div class="setting-group">
+      <label>Algorithm Weights</label>
+      <div class="slider-row">
+        <span class="slider-label">Partner variety</span>
+        <input type="range" id="weightPartnerInput" min="0" max="10" value="5" oninput="document.getElementById('weightPartnerVal').textContent=this.value">
+        <span class="slider-val" id="weightPartnerVal">5</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Position variety</span>
+        <input type="range" id="weightPositionInput" min="0" max="10" value="3" oninput="document.getElementById('weightPositionVal').textContent=this.value">
+        <span class="slider-val" id="weightPositionVal">3</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Randomness</span>
+        <input type="range" id="weightRandomInput" min="0" max="10" value="3" oninput="document.getElementById('weightRandomVal').textContent=this.value">
+        <span class="slider-val" id="weightRandomVal">3</span>
+      </div>
+      <p class="modal-hint">Tune how the algorithm balances partner mixing, tee-time position variety, and pure shuffle.</p>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeSettings()" style="padding:10px 20px">Cancel</button>
       <button class="btn btn-primary" onclick="saveSettings()" style="padding:10px 20px">Save</button>
@@ -677,8 +739,12 @@ let selectedSize = null;
 let selectedSplit = null;
 let lookbackWeeks = 4;
 let historyData = null;
-let currentOptions = [null, null];
-let activeOption = 0;
+let currentResult = null;
+let flightAMax = 17;
+let flightBMax = 25;
+let weightPartner = 5;
+let weightPosition = 3;
+let weightRandom = 3;
 
 async function init() {
   await loadSettings();
@@ -694,11 +760,35 @@ async function loadPlayers() {
 }
 
 async function loadSettings() {
-  const { data } = await sb.from('settings').select('*').eq('key', 'lookback_weeks').single();
+  const { data } = await sb.from('settings').select('*');
   if (data) {
-    lookbackWeeks = parseInt(data.value);
-    document.getElementById('lookbackInput').value = lookbackWeeks;
+    for (const s of data) {
+      switch (s.key) {
+        case 'lookback_weeks': lookbackWeeks = parseInt(s.value); break;
+        case 'flight_a_max': flightAMax = parseInt(s.value); break;
+        case 'flight_b_max': flightBMax = parseInt(s.value); break;
+        case 'weight_partner': weightPartner = parseInt(s.value); break;
+        case 'weight_position': weightPosition = parseInt(s.value); break;
+        case 'weight_random': weightRandom = parseInt(s.value); break;
+      }
+    }
   }
+  document.getElementById('lookbackInput').value = lookbackWeeks;
+  document.getElementById('flightAInput').value = flightAMax;
+  document.getElementById('flightBInput').value = flightBMax;
+  document.getElementById('weightPartnerInput').value = weightPartner;
+  document.getElementById('weightPositionInput').value = weightPosition;
+  document.getElementById('weightRandomInput').value = weightRandom;
+  document.getElementById('weightPartnerVal').textContent = weightPartner;
+  document.getElementById('weightPositionVal').textContent = weightPosition;
+  document.getElementById('weightRandomVal').textContent = weightRandom;
+}
+
+function getFlight(hcp) {
+  if (hcp == null) return 'C';
+  if (hcp <= flightAMax) return 'A';
+  if (hcp <= flightBMax) return 'B';
+  return 'C';
 }
 
 async function loadHistory() {
@@ -753,7 +843,7 @@ function renderRoster() {
   document.getElementById('roster').innerHTML = players.map(p => `
     <label class="player-row ${checkedIds.has(p.id) ? 'checked' : ''}" data-id="${p.id}">
       <input type="checkbox" ${checkedIds.has(p.id) ? 'checked' : ''} onchange="togglePlayer('${p.id}')">
-      <span class="player-name">${p.name}</span>
+      <span class="player-name">${p.name}<span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span></span>
       <span class="player-hcp">${p.handicap != null ? p.handicap : '–'}</span>
     </label>
   `).join('');
@@ -914,13 +1004,7 @@ async function generateGroups() {
     }
 
     scored.sort((a, b) => a.score - b.score);
-    currentOptions[0] = scored[0];
-    currentOptions[1] = scored[1];
-
-    for (let i = 1; i < scored.length; i++) {
-      if (groupingDiff(scored[0].groups, scored[i].groups) > 0.6) { currentOptions[1] = scored[i]; break; }
-    }
-
+    currentResult = scored[0];
     renderResults();
   } catch (err) { showStatus('Error: ' + err.message, 'error'); }
 
@@ -943,53 +1027,31 @@ function scoreGrouping(groups, history) {
       }
     }
   }
-  // Jitter prevents the algorithm from locking into identical placements every time
-  return ps * 3 + pos + Math.random() * (ps + pos + 4);
-}
-
-function groupingDiff(g1, g2) {
-  const p1 = new Set(), p2 = new Set();
-  for (const g of g1) for (let i = 0; i < g.players.length; i++) for (let j = i+1; j < g.players.length; j++)
-    p1.add([g.players[i].id, g.players[j].id].sort().join('|'));
-  for (const g of g2) for (let i = 0; i < g.players.length; i++) for (let j = i+1; j < g.players.length; j++)
-    p2.add([g.players[i].id, g.players[j].id].sort().join('|'));
-  let o = 0; for (const p of p1) if (p2.has(p)) o++;
-  return 1 - o / Math.max(p1.size, p2.size, 1);
+  return ps * weightPartner + pos * weightPosition + Math.random() * weightRandom * (ps + pos + 4) / 3;
 }
 
 function renderResults() {
   document.getElementById('resultsCard').classList.remove('hidden');
-
-  for (let opt = 0; opt < 2; opt++) {
-    const el = document.getElementById(opt === 0 ? 'optionA' : 'optionB');
-    const { groups } = currentOptions[opt];
-    el.innerHTML = groups.map(g => `
-      <div class="group-card">
-        <div class="group-label">Group ${g.groupNumber} of ${groups.length}</div>
-        <div class="group-players">
-          ${g.players.map(p => `
-            <div class="player-entry">
-              <span class="p-name">${p.name}</span>
-              <span class="p-hcp">${p.handicap != null ? p.handicap : '–'}</span>
-            </div>
-          `).join('')}
-        </div>
+  const { groups } = currentResult;
+  document.getElementById('resultsContainer').innerHTML = groups.map(g => `
+    <div class="group-card">
+      <div class="group-label">Group ${g.groupNumber} of ${groups.length}</div>
+      <div class="group-players">
+        ${g.players.map(p => `
+          <div class="player-entry">
+            <span class="p-name">${p.name} <span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span></span>
+            <span class="p-hcp">${p.handicap != null ? p.handicap : '–'}</span>
+          </div>
+        `).join('')}
       </div>
-    `).join('');
-  }
-  showOption(0);
+    </div>
+  `).join('');
   document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
 }
 
-function showOption(i) {
-  activeOption = i;
-  document.querySelectorAll('.option-tab').forEach((t, j) => t.classList.toggle('active', j === i));
-  document.querySelectorAll('.option-content').forEach((e, j) => e.classList.toggle('active', j === i));
-}
-
 async function saveRound() {
-  const option = currentOptions[activeOption];
-  if (!option) return;
+  if (!currentResult) return;
+  const option = currentResult;
   const today = new Date().toISOString().split('T')[0];
 
   const { data: existing } = await sb.from('rounds').select('id').eq('played_date', today).eq('format_name', 'Generated');
@@ -1032,8 +1094,8 @@ async function saveRound() {
 }
 
 function downloadPDF() {
-  const option = currentOptions[activeOption];
-  if (!option) return;
+  if (!currentResult) return;
+  const option = currentResult;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
 
@@ -1078,7 +1140,14 @@ function downloadPDF() {
 
     for (const p of g.players) {
       const hcp = p.handicap != null ? p.handicap.toString() : '–';
+      const fl = getFlight(p.handicap);
       doc.text(p.name, margin + 12, y);
+      doc.setFontSize(10);
+      const flColors = { A: [46,125,50], B: [21,101,192], C: [130,130,130] };
+      const fc = flColors[fl] || flColors.C;
+      doc.setTextColor(fc[0], fc[1], fc[2]);
+      doc.text(fl, 260, y);
+      doc.setFontSize(12);
       doc.setTextColor(130, 130, 130);
       doc.text(hcp, 300, y);
       doc.setTextColor(60, 60, 60);
@@ -1090,15 +1159,46 @@ function downloadPDF() {
   doc.save('GHWGA_TeeSheet_' + today.toISOString().split('T')[0] + '.pdf');
 }
 
-function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+function openSettings() {
+  document.getElementById('lookbackInput').value = lookbackWeeks;
+  document.getElementById('flightAInput').value = flightAMax;
+  document.getElementById('flightBInput').value = flightBMax;
+  document.getElementById('weightPartnerInput').value = weightPartner;
+  document.getElementById('weightPositionInput').value = weightPosition;
+  document.getElementById('weightRandomInput').value = weightRandom;
+  document.getElementById('weightPartnerVal').textContent = weightPartner;
+  document.getElementById('weightPositionVal').textContent = weightPosition;
+  document.getElementById('weightRandomVal').textContent = weightRandom;
+  document.getElementById('settingsModal').classList.add('open');
+}
+
 function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
 
 async function saveSettings() {
-  const val = document.getElementById('lookbackInput').value;
-  lookbackWeeks = parseInt(val);
-  await sb.from('settings').update({ value: val.toString(), updated_at: new Date().toISOString() }).eq('key', 'lookback_weeks');
+  lookbackWeeks = parseInt(document.getElementById('lookbackInput').value);
+  flightAMax = parseInt(document.getElementById('flightAInput').value);
+  flightBMax = parseInt(document.getElementById('flightBInput').value);
+  weightPartner = parseInt(document.getElementById('weightPartnerInput').value);
+  weightPosition = parseInt(document.getElementById('weightPositionInput').value);
+  weightRandom = parseInt(document.getElementById('weightRandomInput').value);
+
+  const pairs = [
+    ['lookback_weeks', lookbackWeeks],
+    ['flight_a_max', flightAMax],
+    ['flight_b_max', flightBMax],
+    ['weight_partner', weightPartner],
+    ['weight_position', weightPosition],
+    ['weight_random', weightRandom],
+  ];
+  const now = new Date().toISOString();
+  for (const [k, v] of pairs) {
+    await sb.from('settings').upsert(
+      { key: k, value: v.toString(), updated_at: now },
+      { onConflict: 'key' }
+    );
+  }
   historyData = null; closeSettings();
-  showStatus('Lookback set to ' + lookbackWeeks + ' weeks.', 'success');
+  showStatus('Settings saved.', 'success');
 }
 
 function showStatus(msg, type) {
