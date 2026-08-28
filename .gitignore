@@ -1,0 +1,8 @@
+# Claude Code seat files (per-machine)
+RESUME-Claude.bat
+seat-check.ps1
+# never
+*credential*
+*secret*
+.env
+.env.*
