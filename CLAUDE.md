@@ -30,6 +30,8 @@ pages (public by design; Row Level Security is the protection — never put a se
   - **Make My Own Groups** (added `c3e021a`) — full-size empty spots per group (3 for
     threesomes…), tap a spot to pick from checked-in, unplaced players; × removes; `+ spot` /
     `+ Add a group`; empty spots/groups dropped on save. `manualMode` flag drives rendering.
+    Roster **Clear** wipes the groups card (`clearResults()`); unchecking a placed player
+    removes her from her group (`24fb6d7`). Accepted by the users 2026-08-29.
 - Decided against: scraping Leaderboard (the club's sign-up site) for history, and importing
   old PDF tee sheets — the users don't want it. Feasibility notes are in memory if it returns.
 - Test locally with `python -m http.server 8765` in this folder (a `file://` open works too),
