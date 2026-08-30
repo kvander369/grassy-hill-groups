@@ -47,4 +47,4 @@ pages (public by design; Row Level Security is the protection — never put a se
   live, and the smoke test. Keep it current when any of that changes.
 - Known gap: no backup of the Supabase data exists (see RESTORE.md §2). Kyle (2026-08-29):
   no paid Supabase plan; if built, it is a local weekly script (04:00 slot) writing to
-  `..secretsgrassy-hillbackups` — still deciding.
+  `..\secrets\grassy-hill\backups\` — still deciding.
