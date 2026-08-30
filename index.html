@@ -893,10 +893,20 @@ function renderRoster() {
 function togglePlayer(id) {
   if (checkedIds.has(id)) checkedIds.delete(id); else checkedIds.add(id);
   renderRoster(); updateCheckedCount(); updateSplitOptions();
+  if (manualMode && currentResult && !checkedIds.has(id)) {
+    currentResult.groups.forEach(g => { g.players = g.players.filter(p => p.id !== id); });
+    renderResults();
+  } else if (manualMode && currentResult) renderResults();
+}
+
+function clearResults() {
+  currentResult = null; manualMode = false;
+  document.getElementById('resultsCard').classList.add('hidden');
+  document.getElementById('resultsContainer').innerHTML = '';
 }
 
 function selectAll() { players.forEach(p => checkedIds.add(p.id)); renderRoster(); updateCheckedCount(); updateSplitOptions(); }
-function deselectAll() { checkedIds.clear(); renderRoster(); updateCheckedCount(); updateSplitOptions(); }
+function deselectAll() { checkedIds.clear(); clearResults(); renderRoster(); updateCheckedCount(); updateSplitOptions(); }
 
 function updateCheckedCount() {
   const n = checkedIds.size;
