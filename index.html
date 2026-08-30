@@ -463,6 +463,22 @@
 
   .result-actions .btn { flex: 1; padding: 14px; }
 
+  /* manual groups */
+  .manual-hint { font-size: 13px; color: var(--text-muted); margin: -8px 0 14px; }
+  .slot-select {
+    font: inherit; font-size: 15px; font-weight: 500;
+    color: var(--forest); background: #fff;
+    border: 1px dashed var(--sage); border-radius: 8px;
+    padding: 8px 10px; width: 100%; cursor: pointer;
+  }
+  .slot-remove {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 18px; line-height: 1; margin-left: 12px; cursor: pointer; padding: 0 4px;
+  }
+  .slot-remove:hover { color: #b33; }
+  .slot-add { font-size: 12px; margin-top: 6px; }
+  .btn-add-group { margin-top: 4px; }
+
   /* ===== MODAL ===== */
   .modal-overlay {
     display: none;
@@ -694,14 +710,19 @@
     <button id="generateBtn" class="btn btn-primary btn-generate" onclick="generateGroups()" disabled>
       Generate Groups
     </button>
+    <button id="manualBtn" class="btn btn-secondary btn-generate" onclick="startManual()" disabled style="margin-top:10px">
+      Make My Own Groups
+    </button>
   </div>
 
   <!-- Results -->
   <div id="resultsCard" class="card hidden">
     <div class="card-title" style="margin-bottom:16px">Today's Groups</div>
+    <p id="manualHint" class="manual-hint hidden"></p>
     <div id="resultsContainer"></div>
+    <button id="addGroupBtn" class="link-btn btn-add-group hidden" onclick="addManualGroup()">+ Add a group</button>
     <div class="result-actions">
-      <button class="btn btn-secondary" onclick="generateGroups()">Generate More</button>
+      <button id="moreBtn" class="btn btn-secondary" onclick="generateGroups()">Generate More</button>
       <button id="pdfBtn" class="btn btn-secondary" onclick="downloadPDF()" disabled style="opacity:0.4">📄 PDF</button>
       <button id="shareBtn" class="btn btn-secondary" onclick="shareLink()" disabled style="opacity:0.4">🔗 Share</button>
       <button class="btn btn-primary" onclick="saveRound()">Use This One</button>
@@ -759,6 +780,7 @@ let selectedSplit = null;
 let lookbackWeeks = 4;
 let historyData = null;
 let currentResult = null;
+let manualMode = false;
 let flightAMax = 17;
 let flightBMax = 25;
 const weightPartner = 5;
@@ -1040,6 +1062,43 @@ function splitMatch(a, b) { return a.length === b.length && a.every((v, i) => v 
 
 function updateGenerateButton() {
   document.getElementById('generateBtn').disabled = !(checkedIds.size >= 2 && selectedSize && selectedSplit);
+  document.getElementById('manualBtn').disabled = checkedIds.size < 2;
+}
+
+// ===== Manual groups =====
+function startManual() {
+  const n = checkedIds.size;
+  const size = selectedSize || 4;
+  const count = Math.ceil(n / size);
+  manualMode = true;
+  currentResult = { groups: Array.from({ length: count }, (_, g) => ({ groupNumber: g + 1, players: [], slots: size })), score: 0 };
+  showStatus('', '');
+  renderResults(); scrollToResults();
+}
+
+function placedIds() { return new Set(currentResult.groups.flatMap(g => g.players.map(p => p.id))); }
+
+function placePlayer(groupNumber, playerId) {
+  if (!playerId) return;
+  const p = players.find(x => x.id === playerId);
+  const g = currentResult.groups[groupNumber - 1];
+  if (!p || !g || placedIds().has(playerId)) return;
+  g.players.push(p);
+  if (g.players.length > g.slots) g.slots = g.players.length;
+  renderResults();
+}
+
+function unplacePlayer(groupNumber, playerId) {
+  const g = currentResult.groups[groupNumber - 1];
+  g.players = g.players.filter(p => p.id !== playerId);
+  renderResults();
+}
+
+function addManualSlot(groupNumber) { currentResult.groups[groupNumber - 1].slots++; renderResults(); }
+
+function addManualGroup() {
+  currentResult.groups.push({ groupNumber: currentResult.groups.length + 1, players: [], slots: selectedSize || 4 });
+  renderResults();
 }
 
 function fisherYates(arr) {
@@ -1073,7 +1132,8 @@ async function generateGroups() {
 
     scored.sort((a, b) => a.score - b.score);
     currentResult = scored[0];
-    renderResults();
+    manualMode = false;
+    renderResults(); scrollToResults();
   } catch (err) { showStatus('Error: ' + err.message, 'error'); }
 
   btn.textContent = 'GENERATE GROUPS'; btn.disabled = false;
@@ -1106,7 +1166,39 @@ function scoreGrouping(groups, history) {
 function renderResults() {
   document.getElementById('resultsCard').classList.remove('hidden');
   const { groups } = currentResult;
-  document.getElementById('resultsContainer').innerHTML = groups.map(g => `
+  document.getElementById('manualHint').classList.toggle('hidden', !manualMode);
+  document.getElementById('addGroupBtn').classList.toggle('hidden', !manualMode);
+  document.getElementById('moreBtn').classList.toggle('hidden', manualMode);
+  let html;
+  if (manualMode) {
+    const placed = placedIds();
+    const avail = players.filter(p => checkedIds.has(p.id) && !placed.has(p.id));
+    const left = avail.length;
+    document.getElementById('manualHint').textContent = left === 0
+      ? 'Everyone is placed.'
+      : left + ' still to place — tap an empty spot to pick a player.';
+    const emptySlot = g => `
+          <div class="player-entry">
+            <select class="slot-select" onchange="placePlayer(${g.groupNumber}, this.value)">
+              <option value="">＋ Pick a player…</option>
+              ${avail.map(p => `<option value="${p.id}">${p.name} (${p.handicap != null ? p.handicap : '–'})</option>`).join('')}
+            </select>
+          </div>`;
+    html = groups.map(g => `
+    <div class="group-card">
+      <div class="group-label">Group ${g.groupNumber} of ${groups.length}</div>
+      <div class="group-players">
+        ${g.players.map(p => `
+          <div class="player-entry">
+            <span class="p-name">${p.name} <span class="flight-badge flight-${getFlight(p.handicap)}">${getFlight(p.handicap)}</span></span>
+            <span><span class="p-hcp">${p.handicap != null ? p.handicap : '–'}</span><button class="slot-remove" onclick="unplacePlayer(${g.groupNumber}, '${p.id}')" title="Remove">×</button></span>
+          </div>`).join('')}
+        ${Array.from({ length: Math.max(0, g.slots - g.players.length) }, () => emptySlot(g)).join('')}
+      </div>
+      <button class="link-btn slot-add" onclick="addManualSlot(${g.groupNumber})">+ spot</button>
+    </div>`).join('');
+  } else {
+    html = groups.map(g => `
     <div class="group-card">
       <div class="group-label">Group ${g.groupNumber} of ${groups.length}</div>
       <div class="group-players">
@@ -1119,12 +1211,22 @@ function renderResults() {
       </div>
     </div>
   `).join('');
-  document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+  }
+  document.getElementById('resultsContainer').innerHTML = html;
 }
+function scrollToResults() { document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' }); }
 
 async function saveRound() {
   if (!currentResult) return;
   const option = currentResult;
+  if (manualMode) {
+    const unplaced = players.filter(p => checkedIds.has(p.id) && !placedIds().has(p.id));
+    if (unplaced.length && !confirm(unplaced.length + ' checked player(s) are not in a group yet:\n' + unplaced.map(p => p.name).join(', ') + '\n\nSave anyway without them?')) return;
+    option.groups = option.groups.filter(g => g.players.length > 0).map((g, i) => ({ ...g, groupNumber: i + 1 }));
+    if (option.groups.length === 0) return showStatus('No one has been placed in a group yet.', 'error');
+    renderResults();
+  }
+  const groupSize = manualMode ? Math.max(...option.groups.map(g => g.players.length)) : selectedSize;
   const today = new Date().toISOString().split('T')[0];
 
   const { data: existing } = await sb.from('rounds').select('id').eq('played_date', today).eq('format_name', 'Generated');
@@ -1136,7 +1238,7 @@ async function saveRound() {
   }
 
   const { data: round, error: re } = await sb.from('rounds')
-    .insert({ played_date: today, format_name: 'Generated', group_size: selectedSize }).select().single();
+    .insert({ played_date: today, format_name: 'Generated', group_size: groupSize }).select().single();
   if (re) return showStatus('Error saving: ' + re.message, 'error');
 
   const inserts = [];
