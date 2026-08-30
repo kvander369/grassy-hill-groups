@@ -20,11 +20,27 @@ pages (public by design; Row Level Security is the protection — never put a se
   problem (invented names in tests/demo data). If player data ever needs to be in the repo,
   stop and ask Kyle.
 
+## Users and features (2026-08-29)
+
+- **Annie** runs the app for the group and may type into this seat directly; she has full say.
+  Kyle owns the accounts (GitHub, Supabase). Both like brief, plain replies.
+- Two ways to build a sheet, both in `index.html`, both saved via `saveRound()` as today's
+  `rounds` row (`format_name: 'Generated'`) + `round_groups`:
+  - **Generate Groups** — the mixer (needs a size + split; scores by pairing history).
+  - **Make My Own Groups** (added `c3e021a`) — full-size empty spots per group (3 for
+    threesomes…), tap a spot to pick from checked-in, unplaced players; × removes; `+ spot` /
+    `+ Add a group`; empty spots/groups dropped on save. `manualMode` flag drives rendering.
+- Decided against: scraping Leaderboard (the club's sign-up site) for history, and importing
+  old PDF tee sheets — the users don't want it. Feasibility notes are in memory if it returns.
+- Test locally with `python -m http.server 8765` in this folder (a `file://` open works too),
+  then open http://localhost:8765/index.html. The local page talks to the REAL database.
+
 ## Rules
 
 - General rules for every seat: `C:\Users\vande\.claude\CLAUDE.md` (commit after verified,
   then `git push` — every push deploys the live site, so verify before pushing).
 - Bump nothing blindly: a push goes live to the girls within a minute. Test in a local
   browser first (`start index.html`) or on a preview copy.
-- Write `RESTORE.md` in the first working session: Pages settings (main, root), the
-  Supabase project id and where its keys live, the Sheet/tables the app depends on.
+- `RESTORE.md` (written 2026-08-29) holds Pages settings, Supabase id/tables, where keys
+  live, and the smoke test. Keep it current when any of that changes.
+- Known gap: no backup of the Supabase data exists (see RESTORE.md §2).
