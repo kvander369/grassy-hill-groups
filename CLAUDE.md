@@ -45,6 +45,13 @@ pages (public by design; Row Level Security is the protection — never put a se
   browser first (`start index.html`) or on a preview copy.
 - `RESTORE.md` (written 2026-08-29) holds Pages settings, Supabase id/tables, where keys
   live, and the smoke test. Keep it current when any of that changes.
-- Known gap: no backup of the Supabase data exists (see RESTORE.md §2). Kyle (2026-08-29):
-  no paid Supabase plan; if built, it is a local weekly script (04:00 slot) writing to
-  `..\secrets\grassy-hill\backups\` — still deciding.
+- **Backups: built 2026-09-07.** `backup.js` + `restore.js` in this folder; scheduled task
+  "Grassy Hill weekly backup" (Mondays 04:20) writes to `..\secrets\grassy-hill\backups\`.
+  Costs nothing, no Supabase plan, all local. Details and the proofs are in RESTORE.md §2.
+  The one gap left: **no restore has ever been performed** into an empty project.
+- **The free project pauses after ~7 days idle.** It did on 2026-09-07 and the app went dark
+  for the girls; the hostname stops resolving entirely (`curl` exit 6, DNS NXDOMAIN), which is
+  the quickest way to tell a pause from an app bug. Kyle hit Resume in the dashboard and it
+  came back in ~3 minutes with all data intact, cycling through 521 → 404 → 200. **Kyle
+  declined a keep-alive ping (2026-09-07)**, so expect this to recur — the fix is his to make
+  in the dashboard, and `backup.js` is written to skip cleanly while it is paused.

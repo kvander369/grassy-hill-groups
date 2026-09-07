@@ -31,10 +31,30 @@ Written 2026-08-29. Everything below was verified that day unless marked otherwi
 - Keys and DB password: `..\secrets\grassy-hill\` (never in this folder, never in any cloud).
   As of 2026-08-29 the values are in `grassy-hill-from-desktop.txt`; `supabase_credentials.md`
   is an unfilled template. Rotated 2026-08-28; legacy anon/service_role keys are disabled.
-- **No backup of the data exists** (GitHub only holds the code). If the Supabase project is
-  lost, roster and history are lost. To take one: Supabase dashboard → Table Editor → export
-  each table as CSV, or ask a Claude seat to export the four tables with the secret key.
-  A backup that has never been restored is untested.
+- **Backups exist as of 2026-09-07** — `backup.js` in this folder, run weekly by the scheduled
+  task **"Grassy Hill weekly backup"** (Mondays 04:20). It writes a dated folder to
+  `..\secrets\grassy-hill\backups\` holding one `.json` per table, `schema.sql` +
+  `schema-openapi.json`, and a `manifest.json` of row counts; it appends one line per run to
+  `backups\backup.log`. It uses only the publishable key for data (the secret key, if present
+  in the secrets folder, is used only to read the schema). It never deletes; old backups
+  accumulate at roughly 150 KB each.
+  - Backups hold the players' **real names**, so they live in the secrets folder and never in
+    this public repo.
+  - If the project is paused, the script writes nothing and logs `SKIPPED` (exit 2) rather
+    than leaving an empty backup that looks successful. Verified 2026-09-07 against a
+    non-resolving host.
+  - Check a backup: `node restore.js` (newest) or `node restore.js YYYY-MM-DD`. It parses every
+    file, compares counts to the manifest, and follows every foreign key. Verified 2026-09-07
+    that it reports FAILED on a damaged copy (a deleted player left 16 orphaned group rows).
+  - Put one back: `node restore.js YYYY-MM-DD --write --target-url=... --target-key=...`.
+    It refuses the live project unless `--live` is also passed, and only inserts, never deletes.
+  - **Still untested: an actual restore into an empty project.** The check passes and the SQL is
+    generated, but no restore has been performed, so this is a backup that has never been
+    restored. Doing it needs a scratch Supabase project (Kyle's login).
+  - `schema.sql` is derived from the REST API's schema, not `pg_dump` (no `psql` on this
+    machine). It carries columns, types, primary keys, foreign keys and NOT NULL, but **not
+    defaults, indexes, triggers or the RLS policies** — after a restore into a new project, RLS
+    must be re-enabled and its policies rewritten by hand or the new project is wide open.
 
 ## 3. Logins
 
