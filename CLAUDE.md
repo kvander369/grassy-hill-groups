@@ -55,3 +55,7 @@ pages (public by design; Row Level Security is the protection — never put a se
   came back in ~3 minutes with all data intact, cycling through 521 → 404 → 200. **Kyle
   declined a keep-alive ping (2026-09-07)**, so expect this to recur — the fix is his to make
   in the dashboard, and `backup.js` is written to skip cleanly while it is paused.
+  **Recurred 2026-09-23**: same fix, back in ~4 minutes (521 → 404 → 200), data intact. A seat
+  cannot resume it — the dashboard needs Kyle's sign-in; open the project page for him with
+  `Start-Process` (the Chrome-extension window is not on his screen), then poll
+  `rest/v1/rounds?select=id&limit=1` with the page's publishable key until it returns 200.
