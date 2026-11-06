@@ -32,7 +32,7 @@ pages (public by design; Row Level Security is the protection — never put a se
     Roster **Clear** wipes the groups card (`clearResults()`); unchecking a placed player
     removes her from her group.
 - Decided against: scraping Leaderboard (the club's sign-up site) for history, and importing
-  old PDF tee sheets — the users don't want it. Feasibility notes are in memory if it returns.
+  old PDF tee sheets — the users don't want it. Feasibility notes are in `..\secrets\grassy-hill\` if it returns.
 - Test locally with `python -m http.server 8765` in this folder (a `file://` open works too),
   then open http://localhost:8765/index.html. The local page talks to the REAL database.
 

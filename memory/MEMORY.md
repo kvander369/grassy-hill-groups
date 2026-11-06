@@ -1,3 +1,3 @@
 - [Annie is the user](annie-is-the-user.md) — Annie types here directly, full say; Kyle owns accounts; both non-technical
 - [Manual groups design](manual-groups-design.md) — empty full-size spots, tap to pick, users place the short group themselves
-- [Leaderboard scrape feasibility](leaderboard-scrape-feasibility.md) — scrapeable behind Annie's login; users declined it 2026-08-29
+- Leaderboard scrape notes are kept out of this public repo: `..\secrets\grassy-hill\leaderboard-scrape-feasibility.md`; users declined it 2026-08-29

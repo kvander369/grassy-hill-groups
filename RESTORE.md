@@ -62,7 +62,8 @@ Written 2026-08-29. Everything below was verified that day unless marked otherwi
 - Supabase dashboard login is Kyle's; GitHub is `kvander369`.
 - Leaderboard (the club's official sign-up site, https://leaderboard.systems/GHWGA9/) is
   Annie's login. The app does not talk to Leaderboard (a scraper was investigated 2026-08-29
-  and declined by the users).
+  and declined by the users). The notes are in `..\secrets\grassy-hill\`, which a clone does
+  not bring back.
 
 ## 4. Local seat files (gitignored, per machine)
 

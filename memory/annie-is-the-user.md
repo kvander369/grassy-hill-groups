@@ -13,4 +13,4 @@ herself (Kyle said 2026-08-29: "She has full rights and privileges"). Kyle owns 
 and identifies himself when he types ("Kyle here"). Both are non-developers: brief, plain answers,
 show a mock before committing, let them play with a local copy, and push only when told.
 
-Related: [[leaderboard-scrape-feasibility]], [[manual-groups-design]]
+Related: [[manual-groups-design]]
